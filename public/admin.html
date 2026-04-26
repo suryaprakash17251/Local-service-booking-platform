@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Console – LocalService</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-logo">Local<span class="logo-dot">Service</span>
+    <span style="font-size:12px;background:#FFF5F5;color:#E53E3E;padding:3px 10px;border-radius:999px;font-weight:700;margin-left:8px;">Admin</span>
+  </div>
+  <div class="nav-actions">
+    <div id="adminName" style="font-size:13px;font-weight:600;color:#718096;"></div>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <h1>Admin Console</h1>
+  <p>Manage service providers across all categories</p>
+</div>
+
+<!-- STATS ROW -->
+<div style="max-width:900px;margin:24px auto 0;padding:0 24px;">
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
+    <div style="background:white;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #EDF2F7;text-align:center;">
+      <div style="font-size:28px;font-weight:800;color:#1A202C;" id="totalCount">0</div>
+      <div style="font-size:13px;color:#718096;margin-top:4px;">Total Providers</div>
+    </div>
+    <div style="background:white;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #EDF2F7;text-align:center;">
+      <div style="font-size:28px;font-weight:800;color:#48BB78;" id="activeCount">0</div>
+      <div style="font-size:13px;color:#718096;margin-top:4px;">Active Providers</div>
+    </div>
+    <div style="background:white;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #EDF2F7;text-align:center;">
+      <div style="font-size:28px;font-weight:800;color:#E53E3E;" id="inactiveCount">0</div>
+      <div style="font-size:13px;color:#718096;margin-top:4px;">Inactive Providers</div>
+    </div>
+  </div>
+</div>
+
+<div class="admin-wrap">
+  <div class="admin-card">
+
+    <!-- ACTION BUTTONS -->
+    <div class="admin-actions" style="flex-wrap:wrap;gap:10px;">
+      <button id="addServiceAction" onclick="openProviderForm()" class="btn btn-primary">+ Add Service Provider</button>
+      <button id="viewProvidersBtn" onclick="toggleProviderList()" class="btn btn-outline">View All Providers</button>
+      <button id="backToAdminBtn" class="btn" style="background:#EDF2F7;color:#718096;display:none;" onclick="backToAdmin()">← Back</button>
+    </div>
+
+    <!-- ADD PROVIDER FORM -->
+    <div id="providerForm" style="display:none;border-top:1px solid #EDF2F7;padding-top:24px;margin-top:8px;">
+      <h3 style="font-size:17px;font-weight:700;margin-bottom:20px;">New Service Provider</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="input-group">
+          <label>Service Category</label>
+          <select id="category">
+            <option value="Electrician">⚡ Electrician</option>
+            <option value="Plumber">🔧 Plumber</option>
+            <option value="AC Repair">❄️ AC Repair</option>
+            <option value="Painting">🎨 Painting</option>
+            <option value="Cleaning">🧹 Cleaning</option>
+            <option value="Carpentry">🔨 Carpentry</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Service Name</label>
+          <input id="serviceName" placeholder="e.g. Home Electric Repair">
+        </div>
+        <div class="input-group">
+          <label>Provider Name</label>
+          <input id="providerName" placeholder="e.g. Ravi Kumar">
+        </div>
+        <div class="input-group">
+          <label>Price (₹)</label>
+          <input id="price" placeholder="e.g. 350" type="number">
+        </div>
+        <div class="input-group">
+          <label>Contact Number</label>
+          <input id="contact" placeholder="e.g. 9876543210" type="tel">
+        </div>
+        <div class="input-group">
+          <label>Location</label>
+          <input id="location" placeholder="e.g. Chennai">
+        </div>
+      </div>
+      <div class="input-group" style="margin-top:4px;">
+        <label>About / Description</label>
+        <textarea id="description" placeholder="Professional description..." rows="3"></textarea>
+      </div>
+      <div class="input-group">
+        <label>Services / Tags (comma-separated)</label>
+        <input id="services" placeholder="e.g. Installation, Repair, Maintenance">
+      </div>
+      <div class="input-group">
+        <label>Rating</label>
+        <div id="ratingStars" style="font-size:24px;cursor:pointer;user-select:none;"></div>
+        <input id="rating" type="hidden" value="5">
+      </div>
+      <div class="input-group">
+        <label>Profile Image URL (optional)</label>
+        <input id="image" placeholder="https://...">
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button onclick="handleAddServiceProvider()" class="btn btn-primary" style="width:auto;padding:12px 28px;">Add Provider</button>
+        <button onclick="closeProviderForm()" class="btn" style="background:#EDF2F7;color:#718096;width:auto;padding:12px 28px;">Cancel</button>
+      </div>
+    </div>
+
+    <!-- FILTER TABS -->
+    <div id="filterTabs" style="display:none;margin-top:16px;border-top:1px solid #EDF2F7;padding-top:20px;">
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <button onclick="filterProviders('all')" id="tab_all"
+          style="padding:8px 18px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;background:#E53E3E;color:white;border:none;">
+          All
+        </button>
+        <button onclick="filterProviders('active')" id="tab_active"
+          style="padding:8px 18px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;background:#EDF2F7;color:#718096;border:none;">
+          Active
+        </button>
+        <button onclick="filterProviders('inactive')" id="tab_inactive"
+          style="padding:8px 18px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;background:#EDF2F7;color:#718096;border:none;">
+          Inactive
+        </button>
+      </div>
+    </div>
+
+    <!-- PROVIDERS LIST -->
+    <div id="serviceList" style="margin-top:8px;display:none;"></div>
+
+  </div>
+</div>
+
+<footer class="site-footer">© 2024 <strong>LocalService</strong>. All rights reserved.</footer>
+
+<script>
+const role = localStorage.getItem('role');
+if (role !== 'Admin') window.location.href = 'auth.html';
+
+const user = JSON.parse(localStorage.getItem('user') || 'null');
+if (user) document.getElementById('adminName').innerText = user.name || 'Admin';
+
+function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+
+let allProviders = [];
+let currentFilter = 'all';
+
+function openProviderForm() {
+  document.getElementById('providerForm').style.display = 'block';
+  document.getElementById('addServiceAction').style.display = 'none';
+}
+
+function closeProviderForm() {
+  document.getElementById('providerForm').style.display = 'none';
+  document.getElementById('addServiceAction').style.display = 'flex';
+}
+
+function backToAdmin() {
+  document.getElementById('serviceList').style.display = 'none';
+  document.getElementById('filterTabs').style.display = 'none';
+  document.getElementById('backToAdminBtn').style.display = 'none';
+  document.getElementById('viewProvidersBtn').style.display = 'flex';
+}
+
+function toggleProviderList() {
+  document.getElementById('filterTabs').style.display = 'block';
+  document.getElementById('serviceList').style.display = 'block';
+  document.getElementById('backToAdminBtn').style.display = 'flex';
+  document.getElementById('viewProvidersBtn').style.display = 'none';
+  loadFullAdminList();
+}
+
+const icons = {Electrician:'⚡',Plumber:'🔧','AC Repair':'❄️',Painting:'🎨',Cleaning:'🧹',Carpentry:'🔨'};
+
+function filterProviders(type) {
+  currentFilter = type;
+  // Update tab styles
+  ['all','active','inactive'].forEach(t => {
+    const btn = document.getElementById(`tab_${t}`);
+    btn.style.background = t === type ? '#E53E3E' : '#EDF2F7';
+    btn.style.color = t === type ? 'white' : '#718096';
+  });
+  renderList();
+}
+
+function renderList() {
+  const list = document.getElementById('serviceList');
+  let filtered = allProviders;
+  if (currentFilter === 'active') filtered = allProviders.filter(s => s.isActive !== false);
+  if (currentFilter === 'inactive') filtered = allProviders.filter(s => s.isActive === false);
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="text-align:center;padding:48px 20px;color:#718096;"><div style="font-size:40px;margin-bottom:12px;">📭</div><p>No providers found.</p></div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(s => {
+    const isActive = s.isActive !== false;
+    return `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid #EDF2F7;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:44px;height:44px;background:${isActive?'#FFF5F5':'#EDF2F7'};border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;">${icons[s.category]||'🛠️'}</div>
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="font-weight:700;font-size:14px;color:#1A202C;">${s.providerName}</div>
+            <span style="background:${isActive?'#C6F6D5':'#FED7D7'};color:${isActive?'#276749':'#9B2C2C'};font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">${isActive?'Active':'Inactive'}</span>
+          </div>
+          <div style="font-size:12px;color:#718096;">${s.category} · ${s.serviceName} · ₹${s.price}</div>
+          <div style="font-size:12px;color:#718096;">📍 ${s.location||'No location'} · ⭐ ${s.rating||4.8}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        ${isActive
+          ? `<button onclick="deactivateProvider('${s._id}')"
+              style="background:#FEF3C7;color:#92400E;border:1px solid #F6E05E;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
+              ⏸ Deactivate
+            </button>`
+          : `<button onclick="activateProvider('${s._id}')"
+              style="background:#C6F6D5;color:#276749;border:1px solid #9AE6B4;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
+              ▶ Activate
+            </button>`
+        }
+        <button onclick="removeProvider('${s._id}')"
+          style="background:#FFF5F5;color:#E53E3E;border:1px solid #FEB2B2;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">
+          🗑 Remove
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function loadFullAdminList() {
+  const list = document.getElementById('serviceList');
+  list.innerHTML = `<div style="text-align:center;padding:24px;color:#718096;">Loading providers...</div>`;
+
+  try {
+    const res = await fetch('http://localhost:5000/services?all=true');
+    allProviders = await res.json();
+
+    // Fix: treat undefined isActive as true (for old providers)
+    allProviders = allProviders.map(s => ({
+      ...s,
+      isActive: s.isActive === false ? false : true
+    }));
+
+    // Update stats
+    const activeOnes = allProviders.filter(s => s.isActive === true);
+    const inactiveOnes = allProviders.filter(s => s.isActive === false);
+    document.getElementById('totalCount').innerText = allProviders.length;
+    document.getElementById('activeCount').innerText = activeOnes.length;
+    document.getElementById('inactiveCount').innerText = inactiveOnes.length;
+
+    renderList();
+  } catch (err) {
+    list.innerHTML = `<div style="text-align:center;padding:24px;color:#E53E3E;">Failed to load. Make sure server is running.</div>`;
+  }
+}
+
+async function deactivateProvider(id) {
+  if (!confirm('Deactivate this provider? They will be hidden from customers.')) return;
+  const res = await fetch(`http://localhost:5000/services/${id}/deactivate`, { method: 'PATCH' });
+  if (res.ok) {
+    alert('Provider deactivated ✅ Hidden from customers.');
+    loadFullAdminList();
+  }
+}
+
+async function activateProvider(id) {
+  const res = await fetch(`http://localhost:5000/services/${id}/activate`, { method: 'PATCH' });
+  if (res.ok) {
+    alert('Provider activated ✅ Now visible to customers.');
+    loadFullAdminList();
+  }
+}
+
+async function removeProvider(id) {
+  if (!confirm('Permanently remove this provider? This cannot be undone.')) return;
+  const res = await fetch(`http://localhost:5000/services/${id}`, { method: 'DELETE' });
+  if (res.ok) {
+    alert('Provider removed ✅');
+    loadFullAdminList();
+  }
+}
+
+function handleAddServiceProvider() {
+  addServiceProvider({
+    category: document.getElementById('category').value,
+    serviceName: document.getElementById('serviceName').value,
+    providerName: document.getElementById('providerName').value,
+    price: document.getElementById('price').value,
+    contact: document.getElementById('contact').value,
+    location: document.getElementById('location').value,
+    description: document.getElementById('description').value,
+    services: document.getElementById('services').value,
+    rating: document.getElementById('rating').value,
+    image: document.getElementById('image').value
+  });
+}
+
+// Star Rating
+const starsEl = document.getElementById('ratingStars');
+const ratingInput = document.getElementById('rating');
+let currentRating = 5;
+function renderStars(val) {
+  starsEl.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const s = document.createElement('span');
+    s.innerText = i <= val ? '★' : '☆';
+    s.style.color = i <= val ? '#D69E2E' : '#CBD5E0';
+    s.style.cursor = 'pointer';
+    s.onclick = () => { currentRating = i; ratingInput.value = i; renderStars(i); };
+    s.onmouseover = () => renderStars(i);
+    s.onmouseout = () => renderStars(currentRating);
+    starsEl.appendChild(s);
+  }
+}
+renderStars(5);
+
+// Load providers when the page opens
+toggleProviderList();
+</script>
+<script src="script.js"></script>
+</body>
+</html>

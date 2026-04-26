@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Bookings – LocalService</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-logo">Local<span class="logo-dot">Service</span></div>
+  <div class="nav-links">
+    <span onclick="window.location='dashboard.html'">Explore</span>
+    <span class="active">My Bookings</span>
+    <span onclick="window.location='profile.html'">Profile</span>
+  </div>
+  <div class="nav-actions">
+    <div id="navUser" style="font-size:13px;font-weight:600;color:#718096;"></div>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <h1>My Bookings</h1>
+  <p>Track all your service bookings in one place</p>
+</div>
+
+<div class="section" style="padding-top:40px;">
+
+  <!-- STATS -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:40px;">
+    <div style="background:white;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #EDF2F7;text-align:center;">
+      <div style="font-size:28px;font-weight:800;color:#1A202C;" id="totalCount">0</div>
+      <div style="font-size:13px;color:#718096;margin-top:4px;">Total Bookings</div>
+    </div>
+    <div style="background:white;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #EDF2F7;text-align:center;">
+      <div style="font-size:28px;font-weight:800;color:#F6AD55;" id="pendingCount">0</div>
+      <div style="font-size:13px;color:#718096;margin-top:4px;">Pending</div>
+    </div>
+    <div style="background:white;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #EDF2F7;text-align:center;">
+      <div style="font-size:28px;font-weight:800;color:#48BB78;" id="confirmedCount">0</div>
+      <div style="font-size:13px;color:#718096;margin-top:4px;">Confirmed</div>
+    </div>
+  </div>
+
+  <!-- BOOKINGS LIST -->
+  <div id="bookingsList">
+    <div style="text-align:center;padding:40px;color:#718096;">Loading your bookings...</div>
+  </div>
+
+</div>
+
+<footer class="site-footer">© 2024 <strong>LocalService</strong>. All rights reserved.</footer>
+
+<script>
+const role = localStorage.getItem('role');
+if (role !== 'Customer') window.location.href = 'auth.html';
+
+const user = JSON.parse(localStorage.getItem('user') || 'null');
+if (user) document.getElementById('navUser').innerText = user.name || '';
+
+function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+
+const icons = {Electrician:'⚡',Plumber:'🔧','AC Repair':'❄️',Painting:'🎨',Cleaning:'🧹',Carpentry:'🔨'};
+
+async function loadBookings() {
+  if (!user) return;
+
+  try {
+    const res = await fetch(`http://localhost:5000/bookings/customer/${encodeURIComponent(user.email)}`);
+    const bookings = await res.json();
+
+    // Update stats
+    document.getElementById('totalCount').innerText = bookings.length;
+    document.getElementById('pendingCount').innerText = bookings.filter(b => b.status === 'Pending').length;
+    document.getElementById('confirmedCount').innerText = bookings.filter(b => b.status === 'Confirmed').length;
+
+    const list = document.getElementById('bookingsList');
+
+    if (bookings.length === 0) {
+      list.innerHTML = `
+        <div style="text-align:center;padding:80px 20px;background:white;border-radius:14px;border:1px solid #EDF2F7;">
+          <div style="font-size:56px;margin-bottom:16px;">📋</div>
+          <h3 style="font-size:18px;font-weight:700;margin-bottom:8px;">No bookings yet</h3>
+          <p style="color:#718096;margin-bottom:24px;">Browse services and book your first appointment</p>
+          <a href="dashboard.html" style="background:#E53E3E;color:white;padding:12px 24px;border-radius:999px;font-weight:700;text-decoration:none;font-size:14px;">Explore Services</a>
+        </div>`;
+      return;
+    }
+
+    // Sort newest first
+    const sorted = [...bookings].reverse();
+
+    list.innerHTML = sorted.map(b => {
+      const statusColor = b.status === 'Confirmed' ? '#C6F6D5' : b.status === 'Cancelled' ? '#FED7D7' : '#FEF3C7';
+      const statusTextColor = b.status === 'Confirmed' ? '#276749' : b.status === 'Cancelled' ? '#9B2C2C' : '#92400E';
+      return `
+      <div style="background:white;border-radius:14px;padding:24px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #EDF2F7;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:48px;height:48px;background:#FFF5F5;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;">${icons[b.category]||'🛠️'}</div>
+            <div>
+              <div style="font-size:16px;font-weight:800;color:#1A202C;">${b.providerName}</div>
+              <div style="font-size:13px;color:#718096;">${b.category} · ${b.serviceName}</div>
+            </div>
+          </div>
+          <span style="background:${statusColor};color:${statusTextColor};font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;">${b.status}</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;background:#F7FAFC;border-radius:10px;padding:14px;margin-bottom:16px;">
+          <div>
+            <div style="font-size:11px;color:#718096;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Price</div>
+            <div style="font-size:15px;font-weight:800;color:#1A202C;margin-top:3px;">₹${b.price}</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:#718096;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Date</div>
+            <div style="font-size:13px;font-weight:600;color:#1A202C;margin-top:3px;">📅 ${b.bookingDate ? new Date(b.bookingDate).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : 'N/A'}</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:#718096;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Time Slot</div>
+            <div style="font-size:13px;font-weight:600;color:#1A202C;margin-top:3px;">🕐 ${b.timeSlot||'N/A'}</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:#718096;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Location</div>
+            <div style="font-size:13px;font-weight:600;color:#1A202C;margin-top:3px;">📍 ${b.location||'N/A'}</div>
+          </div>
+        </div>
+
+        ${b.status === 'Pending' ? `
+        <div style="display:flex;gap:8px;">
+          <button onclick="cancelBooking('${b._id}')" style="background:#FFF5F5;color:#E53E3E;border:1px solid #FEB2B2;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Cancel Booking</button>
+          <button style="background:#EDF2F7;color:#718096;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">📞 Contact Provider</button>
+        </div>` : ''}
+
+        ${b.status === 'Confirmed' ? `
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button onclick="openReviewModal('${b.serviceId}', '${b.providerName}')" style="background:#EBF8FF;color:#3182CE;border:1px solid #BEE3F8;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">⭐ Add Review</button>
+          ${b.isDiscounted ? `<span style="font-size:11px;color:#E53E3E;font-weight:bold;">Review Required</span>` : ''}
+        </div>` : ''}
+      </div>`;
+    }).join('');
+
+  } catch (err) {
+    console.error('Error loading bookings:', err);
+    document.getElementById('bookingsList').innerHTML = `<div style="text-align:center;padding:40px;color:#E53E3E;">Failed to load bookings. Make sure server is running.</div>`;
+  }
+}
+
+async function cancelBooking(id) {
+  if (!confirm('Are you sure you want to cancel this booking?')) return;
+  await fetch(`http://localhost:5000/bookings/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: 'Cancelled' })
+  });
+  loadBookings();
+}
+
+let currentReviewProviderId = '';
+let currentReviewProviderName = '';
+
+function openReviewModal(providerId, providerName) {
+  currentReviewProviderId = providerId;
+  currentReviewProviderName = providerName;
+  const modal = document.createElement('div');
+  modal.id = 'reviewModal';
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,20,30,0.55);backdrop-filter:blur(4px);display:flex;justify-content:center;align-items:center;z-index:1002;';
+  modal.innerHTML = `
+    <div style="background:white;border-radius:18px;padding:28px;width:min(400px,92%);box-shadow:0 10px 40px rgba(0,0,0,0.2);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3 style="font-size:18px;font-weight:800;margin:0;">Review ${providerName}</h3>
+        <button onclick="closeReviewModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#718096;">✕</button>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:13px;font-weight:700;margin-bottom:8px;">Rating</label>
+        <select id="reviewRating" style="width:100%;padding:10px;border-radius:8px;border:1px solid #EDF2F7;background:#F7FAFC;font-size:14px;outline:none;">
+          <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+          <option value="4">⭐⭐⭐⭐ Good</option>
+          <option value="3">⭐⭐⭐ Average</option>
+          <option value="2">⭐⭐ Poor</option>
+          <option value="1">⭐ Terrible</option>
+        </select>
+      </div>
+      <div style="margin-bottom:20px;">
+        <label style="display:block;font-size:13px;font-weight:700;margin-bottom:8px;">Comment</label>
+        <textarea id="reviewComment" rows="3" placeholder="Write your experience..." style="width:100%;padding:10px;border-radius:8px;border:1px solid #EDF2F7;background:#F7FAFC;font-size:14px;outline:none;resize:vertical;"></textarea>
+      </div>
+      <button onclick="submitReview()" style="width:100%;background:#3182CE;color:white;border:none;border-radius:9px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;">Submit Review</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function closeReviewModal() {
+  const m = document.getElementById('reviewModal');
+  if (m) m.remove();
+}
+
+async function submitReview() {
+  const rating = document.getElementById('reviewRating').value;
+  const comment = document.getElementById('reviewComment').value;
+  if (!comment) { alert("Please enter a comment"); return; }
+  
+  try {
+    const res = await fetch("http://localhost:5000/reviews", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        providerId: currentReviewProviderId,
+        providerName: currentReviewProviderName,
+        customerName: user.name,
+        customerEmail: user.email,
+        rating: Number(rating),
+        comment
+      })
+    });
+    
+    if (res.ok) {
+      alert("Review submitted successfully! ✅");
+      closeReviewModal();
+    } else {
+      const msg = await res.text();
+      alert(msg);
+    }
+  } catch (err) {
+    alert("Error submitting review");
+  }
+}
+
+loadBookings();
+</script>
+</body>
+</html>

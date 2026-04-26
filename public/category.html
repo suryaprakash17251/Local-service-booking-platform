@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Category – LocalService</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-logo">Local<span class="logo-dot">Service</span></div>
+  <div class="nav-links">
+    <span onclick="window.location='dashboard.html'">Explore</span>
+    <span class="active" id="catNavLabel">Category</span>
+    <span onclick="window.location='profile.html'">Profile</span>
+  </div>
+  <div class="nav-actions">
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<div class="page-header">
+  <h1 id="categoryTitle">Category</h1>
+  <p>Browse providers in this category</p>
+</div>
+
+<div class="section" style="padding-top:40px;">
+  <div id="emptyState" class="empty-state" style="display:none;">
+    <div class="empty-icon">🔍</div>
+    <p>No providers found in this category.<br>Admin can add providers from the console.</p>
+  </div>
+  <div id="serviceGrid" class="provider-grid"></div>
+</div>
+
+<!-- Modal -->
+<div id="serviceModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,20,30,0.55); backdrop-filter:blur(4px); justify-content:center; align-items:center; z-index:1000;">
+  <div id="serviceModalContent" style="background:#fff; padding:28px; border-radius:18px; width:min(480px,92%); box-shadow:0 10px 40px rgba(0,0,0,0.18); max-height:88vh; overflow-y:auto;"></div>
+</div>
+
+<footer class="site-footer">© 2024 <strong>LocalService</strong>. All rights reserved.</footer>
+
+<script src="script.js"></script>
+<script>
+  const role = localStorage.getItem('role');
+  if (role !== 'Customer') { window.location.href = 'auth.html'; throw new Error('Not customer'); }
+
+  const params = new URLSearchParams(window.location.search);
+  const category = params.get('category') || '';
+  document.getElementById('categoryTitle').innerText = category || 'All Services';
+  document.getElementById('catNavLabel').innerText = category || 'Category';
+
+  function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+
+  selectedCategory = category;
+  renderProviderGrid(category);
+
+  const services = getServices().filter(s => !category || s.category === category);
+  if (services.length === 0) {
+    document.getElementById('serviceGrid').style.display = 'none';
+    document.getElementById('emptyState').style.display = 'block';
+  }
+</script>
+</body>
+</html>

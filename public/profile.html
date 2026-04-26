@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile – LocalService</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-logo">Local<span class="logo-dot">Service</span></div>
+  <div class="nav-links">
+    <span onclick="window.location='dashboard.html'">Explore</span>
+    <span onclick="window.location='bookings.html'">My Bookings</span>
+    <span class="active">Profile</span>
+  </div>
+  <div class="nav-actions">
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <h1>My Profile</h1>
+  <p>Manage your personal information and account settings</p>
+</div>
+
+<div class="section" style="padding-top:40px;max-width:800px;">
+
+  <!-- PROFILE CARD -->
+  <div style="background:white;border-radius:16px;padding:32px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #EDF2F7;margin-bottom:20px;">
+
+    <!-- AVATAR + NAME ROW -->
+    <div style="display:flex;align-items:center;gap:20px;margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid #EDF2F7;">
+      <div id="avatarCircle" style="width:80px;height:80px;background:linear-gradient(135deg,#E53E3E,#C53030);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:800;color:white;flex-shrink:0;">?</div>
+      <div style="flex:1;">
+        <div style="font-size:22px;font-weight:800;color:#1A202C;" id="displayName">Loading...</div>
+        <div style="font-size:14px;color:#718096;margin-top:3px;" id="displayRole">Customer</div>
+        <div style="font-size:13px;color:#A0AEC0;margin-top:2px;" id="displayEmail"></div>
+      </div>
+      <!-- EDIT / SAVE BUTTONS -->
+      <div style="display:flex;gap:10px;">
+        <button id="editBtn" onclick="enableEdit()"
+          style="background:#E53E3E;color:white;border:none;border-radius:10px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">
+          ✏️ Edit Profile
+        </button>
+        <button id="saveBtn" onclick="saveProfile()" style="display:none;background:#48BB78;color:white;border:none;border-radius:10px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">
+          💾 Save Changes
+        </button>
+        <button id="cancelBtn" onclick="cancelEdit()" style="display:none;background:#EDF2F7;color:#718096;border:none;border-radius:10px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <!-- SUCCESS / ERROR MESSAGES -->
+    <div id="successMsg" style="background:#C6F6D5;border:1px solid #9AE6B4;color:#276749;border-radius:8px;padding:12px 16px;font-size:14px;margin-bottom:16px;display:none;">
+      ✅ Profile updated successfully!
+    </div>
+    <div id="errorMsg" style="background:#FFF5F5;border:1px solid #FEB2B2;color:#C53030;border-radius:8px;padding:12px 16px;font-size:14px;margin-bottom:16px;display:none;"></div>
+
+    <!-- PROFILE FIELDS -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;" id="profileFields">
+
+      <!-- NAME -->
+      <div>
+        <label style="font-size:12px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:8px;">Full Name</label>
+        <div id="view_name" style="font-size:15px;font-weight:600;color:#1A202C;padding:12px 14px;background:#F7FAFC;border-radius:8px;border:1.5px solid #EDF2F7;"></div>
+        <input id="edit_name" type="text" placeholder="Your full name"
+          style="display:none;width:100%;padding:11px 14px;border:1.5px solid #E53E3E;border-radius:8px;font-size:14px;font-family:inherit;color:#1A202C;background:white;outline:none;box-sizing:border-box;">
+      </div>
+
+      <!-- EMAIL (non-editable) -->
+      <div>
+        <label style="font-size:12px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:8px;">Email Address</label>
+        <div id="view_email" style="font-size:15px;font-weight:600;color:#1A202C;padding:12px 14px;background:#F7FAFC;border-radius:8px;border:1.5px solid #EDF2F7;"></div>
+        <div id="edit_email_note" style="display:none;font-size:13px;padding:11px 14px;background:#F7FAFC;border-radius:8px;border:1.5px solid #EDF2F7;color:#718096;">Email cannot be changed</div>
+      </div>
+
+      <!-- PHONE -->
+      <div>
+        <label style="font-size:12px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:8px;">Phone Number</label>
+        <div id="view_phone" style="font-size:15px;font-weight:600;color:#1A202C;padding:12px 14px;background:#F7FAFC;border-radius:8px;border:1.5px solid #EDF2F7;"></div>
+        <input id="edit_phone" type="tel" placeholder="+91 9000000000"
+          style="display:none;width:100%;padding:11px 14px;border:1.5px solid #E53E3E;border-radius:8px;font-size:14px;font-family:inherit;color:#1A202C;background:white;outline:none;box-sizing:border-box;">
+      </div>
+
+      <!-- ROLE (non-editable) -->
+      <div>
+        <label style="font-size:12px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:8px;">Account Role</label>
+        <div id="view_role" style="font-size:15px;font-weight:600;color:#1A202C;padding:12px 14px;background:#F7FAFC;border-radius:8px;border:1.5px solid #EDF2F7;"></div>
+      </div>
+
+      <!-- ADDRESS (full width) -->
+      <div style="grid-column:1/-1;">
+        <label style="font-size:12px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:8px;">Address</label>
+        <div id="view_address" style="font-size:15px;font-weight:600;color:#1A202C;padding:12px 14px;background:#F7FAFC;border-radius:8px;border:1.5px solid #EDF2F7;min-height:48px;"></div>
+        <textarea id="edit_address" placeholder="Your full address (street, city, state)"
+          style="display:none;width:100%;padding:11px 14px;border:1.5px solid #E53E3E;border-radius:8px;font-size:14px;font-family:inherit;color:#1A202C;background:white;outline:none;resize:vertical;box-sizing:border-box;" rows="3"></textarea>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ACCOUNT SETTINGS CARD -->
+  <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #EDF2F7;">
+    <h3 style="font-size:16px;font-weight:800;margin-bottom:16px;">Account Settings</h3>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#F7FAFC;border-radius:10px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:20px;">🔒</span>
+          <div>
+            <div style="font-size:14px;font-weight:700;">Change Password</div>
+            <div style="font-size:12px;color:#718096;">Update your account password</div>
+          </div>
+        </div>
+        <button onclick="alert('Use Forgot Password on the login page to reset your password.')"
+          style="background:#EDF2F7;color:#718096;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Change</button>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#F7FAFC;border-radius:10px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:20px;">🔔</span>
+          <div>
+            <div style="font-size:14px;font-weight:700;">Notifications</div>
+            <div style="font-size:12px;color:#718096;">Manage booking & service alerts</div>
+          </div>
+        </div>
+        <button onclick="alert('Notifications enabled!')"
+          style="background:#C6F6D5;color:#276749;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Enabled</button>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#FFF5F5;border-radius:10px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:20px;">🚪</span>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:#E53E3E;">Logout</div>
+            <div style="font-size:12px;color:#718096;">Sign out of your account</div>
+          </div>
+        </div>
+        <button onclick="logout()"
+          style="background:#FFF5F5;color:#E53E3E;border:1px solid #FEB2B2;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Logout</button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<footer class="site-footer">© 2024 <strong>LocalService</strong>. All rights reserved.</footer>
+
+<script>
+const role = localStorage.getItem('role');
+if (!role) window.location.href = 'auth.html';
+
+let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+
+async function loadProfile() {
+  if (!currentUser) return;
+
+  try {
+    // Try to fetch latest from server
+    const res = await fetch(`http://localhost:5000/user/${currentUser.email}`);
+    if (res.ok) {
+      const data = await res.json();
+      currentUser = { ...currentUser, ...data };
+      localStorage.setItem('user', JSON.stringify(currentUser));
+    }
+  } catch (err) {
+    console.log('Using cached profile data');
+  }
+
+  // Populate display fields
+  const name = currentUser.name || 'Not set';
+  const email = currentUser.email || 'Not set';
+  const phone = currentUser.phone || 'Not set';
+  const role = currentUser.role || 'Customer';
+  const address = currentUser.address || 'Not set';
+
+  document.getElementById('avatarCircle').innerText = name[0].toUpperCase();
+  document.getElementById('displayName').innerText = name;
+  document.getElementById('displayRole').innerText = role;
+  document.getElementById('displayEmail').innerText = email;
+
+  document.getElementById('view_name').innerText = name;
+  document.getElementById('view_email').innerText = email;
+  document.getElementById('view_phone').innerText = phone;
+  document.getElementById('view_role').innerText = role;
+  document.getElementById('view_address').innerText = address;
+
+  // Pre-fill edit inputs
+  document.getElementById('edit_name').value = name !== 'Not set' ? name : '';
+  document.getElementById('edit_phone').value = phone !== 'Not set' ? phone : '';
+  document.getElementById('edit_address').value = address !== 'Not set' ? address : '';
+}
+
+function enableEdit() {
+  // Show edit inputs, hide view divs
+  ['name', 'phone', 'address'].forEach(field => {
+    document.getElementById(`view_${field}`).style.display = 'none';
+    document.getElementById(`edit_${field}`).style.display = 'block';
+  });
+  document.getElementById('view_email').style.display = 'none';
+  document.getElementById('edit_email_note').style.display = 'block';
+
+  document.getElementById('editBtn').style.display = 'none';
+  document.getElementById('saveBtn').style.display = 'block';
+  document.getElementById('cancelBtn').style.display = 'block';
+
+  document.getElementById('successMsg').style.display = 'none';
+  document.getElementById('errorMsg').style.display = 'none';
+}
+
+function cancelEdit() {
+  // Hide edit inputs, show view divs
+  ['name', 'phone', 'address'].forEach(field => {
+    document.getElementById(`view_${field}`).style.display = 'block';
+    document.getElementById(`edit_${field}`).style.display = 'none';
+  });
+  document.getElementById('view_email').style.display = 'block';
+  document.getElementById('edit_email_note').style.display = 'none';
+
+  document.getElementById('editBtn').style.display = 'block';
+  document.getElementById('saveBtn').style.display = 'none';
+  document.getElementById('cancelBtn').style.display = 'none';
+}
+
+async function saveProfile() {
+  const name = document.getElementById('edit_name').value.trim();
+  const phone = document.getElementById('edit_phone').value.trim();
+  const address = document.getElementById('edit_address').value.trim();
+  const errEl = document.getElementById('errorMsg');
+  const sucEl = document.getElementById('successMsg');
+
+  errEl.style.display = 'none';
+  sucEl.style.display = 'none';
+
+  if (!name) {
+    errEl.innerText = 'Name cannot be empty ❗';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (!phone) {
+    errEl.innerText = 'Phone number cannot be empty ❗';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    const res = await fetch('http://localhost:5000/user/update', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: currentUser.email, name, phone, address })
+    });
+
+    if (res.ok) {
+      const updated = await res.json();
+      // Update localStorage
+      currentUser = { ...currentUser, ...updated };
+      localStorage.setItem('user', JSON.stringify(currentUser));
+
+      // Update display
+      document.getElementById('avatarCircle').innerText = name[0].toUpperCase();
+      document.getElementById('displayName').innerText = name;
+      document.getElementById('view_name').innerText = name;
+      document.getElementById('view_phone').innerText = phone;
+      document.getElementById('view_address').innerText = address || 'Not set';
+
+      sucEl.style.display = 'block';
+      cancelEdit();
+    } else {
+      const msg = await res.text();
+      errEl.innerText = msg;
+      errEl.style.display = 'block';
+    }
+  } catch (err) {
+    errEl.innerText = 'Server error. Make sure server is running.';
+    errEl.style.display = 'block';
+  }
+}
+
+loadProfile();
+</script>
+</body>
+</html>

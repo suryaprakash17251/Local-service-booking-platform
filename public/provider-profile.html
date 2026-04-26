@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Provider Profile – LocalService</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-logo">Local<span class="logo-dot">Service</span></div>
+  <div class="nav-links">
+    <span onclick="window.location='dashboard.html'">Explore</span>
+    <span onclick="window.location='bookings.html'">My Bookings</span>
+    <span onclick="window.location='profile.html'">Profile</span>
+  </div>
+  <div class="nav-actions">
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<!-- BACK -->
+<div style="max-width:960px;margin:0 auto;padding:24px 24px 0;">
+  <a onclick="history.back()" style="color:#E53E3E;font-size:14px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">← Back to Services</a>
+</div>
+
+<!-- MAIN CONTENT -->
+<div style="max-width:960px;margin:20px auto 60px;padding:0 24px;" id="profileContent">
+  <div style="text-align:center;padding:60px;color:#718096;">Loading provider profile...</div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div id="serviceModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,20,30,0.55);backdrop-filter:blur(4px);justify-content:center;align-items:center;z-index:1000;">
+  <div id="serviceModalContent" style="background:#fff;padding:28px;border-radius:18px;width:min(480px,92%);box-shadow:0 10px 40px rgba(0,0,0,0.18);max-height:88vh;overflow-y:auto;"></div>
+</div>
+
+<footer class="site-footer">© 2024 <strong>LocalService</strong>. All rights reserved.</footer>
+
+<script src="script.js"></script>
+<script>
+const role = localStorage.getItem('role');
+if (role !== 'Customer') window.location.href = 'auth.html';
+
+const user = JSON.parse(localStorage.getItem('user') || 'null');
+function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+
+const params = new URLSearchParams(window.location.search);
+const providerId = params.get('id');
+if (!providerId) window.location.href = 'dashboard.html';
+
+const icons = {Electrician:'⚡',Plumber:'🔧','AC Repair':'❄️',Painting:'🎨',Cleaning:'🧹',Carpentry:'🔨'};
+
+let currentProvider = null;
+
+async function loadProviderProfile() {
+  await fetchAndStoreServices();
+  const services = getServices();
+  const s = services.find(x => (x._id || x.id) == providerId);
+
+  if (!s) {
+    document.getElementById('profileContent').innerHTML = `
+      <div style="text-align:center;padding:60px;color:#718096;">
+        <div style="font-size:48px;margin-bottom:12px;">😕</div>
+        <p>Provider not found.</p>
+        <a href="dashboard.html" style="color:#E53E3E;font-weight:700;">Go back</a>
+      </div>`;
+    return;
+  }
+
+  currentProvider = s;
+  const sid = s._id || s.id;
+  const avatarUrl = s.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.providerName)}&background=E53E3E&color=fff&size=120&bold=true`;
+
+  document.title = `${s.providerName} – LocalService`;
+
+  document.getElementById('profileContent').innerHTML = `
+
+    <!-- PROFILE HEADER CARD -->
+    <div style="background:white;border-radius:16px;padding:32px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #EDF2F7;margin-bottom:20px;">
+      <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;">
+        <img src="${avatarUrl}" style="width:120px;height:120px;border-radius:18px;object-fit:cover;box-shadow:0 4px 16px rgba(229,62,62,0.2);"
+          onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(s.providerName)}&background=E53E3E&color=fff&size=120'">
+        <div style="flex:1;min-width:200px;">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;">
+            <h1 style="font-size:26px;font-weight:800;color:#1A202C;margin:0;">${s.providerName}</h1>
+            <span style="color:#2563eb;font-size:15px;font-weight:700;">✓ Verified</span>
+          </div>
+          <div style="font-size:15px;color:#718096;margin-bottom:12px;">${s.category} Specialist</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+            <span style="background:${s.status==='Busy'?'#FED7D7':'#C6F6D5'};color:${s.status==='Busy'?'#9B2C2C':'#276749'};font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;">${s.status||'Available'}</span>
+            <span style="background:#FFF5F5;color:#E53E3E;font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;">${icons[s.category]||'🛠️'} ${s.category}</span>
+          </div>
+          <div style="display:flex;gap:28px;flex-wrap:wrap;">
+            <div>
+              <div style="font-size:11px;color:#718096;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Rating</div>
+              <div style="font-size:20px;font-weight:800;color:#1A202C;margin-top:2px;" id="avgRating">⭐ ${s.rating||4.8}</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:#718096;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Price</div>
+              <div style="font-size:22px;font-weight:800;color:#E53E3E;margin-top:2px;">₹${s.price} <span style="font-size:13px;font-weight:400;color:#A0AEC0;">/service</span></div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:#718096;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Location</div>
+              <div style="font-size:15px;font-weight:700;color:#1A202C;margin-top:2px;">📍 ${s.location||'Not specified'}</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;min-width:160px;">
+          <button onclick="openBookingPanel('${sid}')" style="background:#E53E3E;color:white;border:none;border-radius:12px;padding:14px 24px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(229,62,62,0.3);">📅 Book Now</button>
+          <button style="background:white;color:#E53E3E;border:1.5px solid #E53E3E;border-radius:12px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">📞 Call Provider</button>
+          <button style="background:white;color:#718096;border:1.5px solid #EDF2F7;border-radius:12px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">💬 Message</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAILS ROW -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+      <!-- ABOUT -->
+      <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #EDF2F7;">
+        <h3 style="font-size:16px;font-weight:800;margin-bottom:12px;">About</h3>
+        <p style="font-size:14px;color:#4A5568;line-height:1.7;margin:0 0 16px;">${s.description||'Experienced professional with guaranteed satisfaction.'}</p>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#F7FAFC;border-radius:8px;">
+            <span>🛡️</span><div><div style="font-size:13px;font-weight:700;">Background Verified</div><div style="font-size:12px;color:#718096;">Identity & credentials checked</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#F7FAFC;border-radius:8px;">
+            <span>⏱️</span><div><div style="font-size:13px;font-weight:700;">Quick Response</div><div style="font-size:12px;color:#718096;">Responds within 1 hour</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#F7FAFC;border-radius:8px;">
+            <span>✅</span><div><div style="font-size:13px;font-weight:700;">Service Guarantee</div><div style="font-size:12px;color:#718096;">100% satisfaction guaranteed</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SERVICES & CONTACT -->
+      <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #EDF2F7;">
+        <h3 style="font-size:16px;font-weight:800;margin-bottom:12px;">Services Offered</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;">
+          ${(s.services ? s.services.split(',') : [s.serviceName, s.category]).map(t =>
+            `<span style="background:#FFF5F5;border:1px solid #FEB2B2;color:#E53E3E;padding:6px 14px;border-radius:999px;font-size:13px;font-weight:600;">${t.trim()}</span>`
+          ).join('')}
+        </div>
+        <h3 style="font-size:16px;font-weight:800;margin-bottom:12px;">Contact Info</h3>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          ${s.contact ? `<div style="display:flex;align-items:center;gap:10px;font-size:14px;"><span>📞</span><span style="font-weight:600;">${s.contact}</span></div>` : ''}
+          <div style="display:flex;align-items:center;gap:10px;font-size:14px;"><span>📍</span><span style="font-weight:600;">${s.location||'Not specified'}</span></div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:14px;"><span>🏷️</span><span style="font-weight:600;">${s.category} · ${s.serviceName}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REVIEWS SECTION -->
+    <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #EDF2F7;margin-bottom:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="font-size:16px;font-weight:800;margin:0;">Customer Reviews</h3>
+        <span id="reviewCount" style="font-size:13px;color:#718096;">Loading...</span>
+      </div>
+      <div id="reviewsList" style="display:flex;flex-direction:column;gap:14px;">
+        <div style="text-align:center;padding:20px;color:#718096;">Loading reviews...</div>
+      </div>
+    </div>
+
+    <!-- ADD REVIEW SECTION -->
+    <div style="background:white;border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #EDF2F7;" id="reviewFormSection">
+      <h3 style="font-size:16px;font-weight:800;margin-bottom:6px;">Write a Review</h3>
+      <p style="font-size:13px;color:#718096;margin-bottom:20px;">Share your experience with this provider</p>
+
+      <div style="margin-bottom:16px;">
+        <label style="font-size:13px;font-weight:700;color:#2D3748;display:block;margin-bottom:8px;">Your Rating</label>
+        <div id="starPicker" style="display:flex;gap:6px;font-size:32px;cursor:pointer;">
+          <span onclick="setRating(1)" class="star" data-val="1">☆</span>
+          <span onclick="setRating(2)" class="star" data-val="2">☆</span>
+          <span onclick="setRating(3)" class="star" data-val="3">☆</span>
+          <span onclick="setRating(4)" class="star" data-val="4">☆</span>
+          <span onclick="setRating(5)" class="star" data-val="5">☆</span>
+        </div>
+        <input type="hidden" id="selectedRating" value="0">
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label style="font-size:13px;font-weight:700;color:#2D3748;display:block;margin-bottom:8px;">Your Review</label>
+        <textarea id="reviewComment" placeholder="Describe your experience with this provider..." rows="4"
+          style="width:100%;padding:12px 14px;border:1.5px solid #EDF2F7;border-radius:10px;font-size:14px;font-family:inherit;color:#1A202C;background:#F7FAFC;outline:none;resize:vertical;"></textarea>
+      </div>
+
+      <div id="reviewError" style="background:#FFF5F5;border:1px solid #FEB2B2;color:#C53030;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:12px;display:none;"></div>
+      <div id="reviewSuccess" style="background:#C6F6D5;border:1px solid #9AE6B4;color:#276749;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:12px;display:none;"></div>
+
+      <button onclick="submitReview('${sid}')"
+        style="background:#E53E3E;color:white;border:none;border-radius:10px;padding:13px 28px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">
+        Submit Review ⭐
+      </button>
+    </div>
+  `;
+
+  // Load real reviews from DB
+  loadReviews(sid);
+}
+
+let selectedRating = 0;
+
+function setRating(val) {
+  selectedRating = val;
+  document.getElementById('selectedRating').value = val;
+  document.querySelectorAll('.star').forEach(s => {
+    s.innerText = parseInt(s.dataset.val) <= val ? '★' : '☆';
+    s.style.color = parseInt(s.dataset.val) <= val ? '#D69E2E' : '#CBD5E0';
+  });
+}
+
+async function loadReviews(providerId) {
+  try {
+    const res = await fetch(`http://localhost:5000/reviews/${providerId}`);
+    const reviews = await res.json();
+
+    const countEl = document.getElementById('reviewCount');
+    const listEl = document.getElementById('reviewsList');
+
+    if (!countEl || !listEl) return;
+
+    countEl.innerText = `${reviews.length} review${reviews.length !== 1 ? 's' : ''}`;
+
+    if (reviews.length === 0) {
+      listEl.innerHTML = `
+        <div style="text-align:center;padding:32px;color:#718096;">
+          <div style="font-size:40px;margin-bottom:8px;">💬</div>
+          <p>No reviews yet. Be the first to review!</p>
+        </div>`;
+      return;
+    }
+
+    // Update average rating
+    const avg = (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1);
+    const avgEl = document.getElementById('avgRating');
+    if (avgEl) avgEl.innerText = `⭐ ${avg} (${reviews.length} reviews)`;
+
+    listEl.innerHTML = reviews.map(r => `
+      <div style="padding:16px;background:#F7FAFC;border-radius:12px;border:1px solid #EDF2F7;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:36px;height:36px;background:#E53E3E;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:white;">${r.customerName[0].toUpperCase()}</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#1A202C;">${r.customerName}</div>
+              <div style="font-size:11px;color:#718096;">${new Date(r.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</div>
+            </div>
+          </div>
+          <div style="color:#D69E2E;font-size:16px;">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+        </div>
+        <p style="font-size:14px;color:#4A5568;line-height:1.6;margin:0;">"${r.comment}"</p>
+      </div>
+    `).join('');
+
+  } catch (err) {
+    console.error('Error loading reviews:', err);
+  }
+}
+
+async function submitReview(providerId) {
+  const rating = selectedRating;
+  const comment = document.getElementById('reviewComment').value.trim();
+  const errEl = document.getElementById('reviewError');
+  const sucEl = document.getElementById('reviewSuccess');
+
+  errEl.style.display = 'none';
+  sucEl.style.display = 'none';
+
+  if (!rating || rating === 0) {
+    errEl.innerText = 'Please select a star rating ⭐';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (!comment) {
+    errEl.innerText = 'Please write a review comment';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (!user) {
+    errEl.innerText = 'Please login to submit a review';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    const res = await fetch('http://localhost:5000/reviews', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        providerId,
+        providerName: currentProvider ? currentProvider.providerName : '',
+        customerName: user.name,
+        customerEmail: user.email,
+        rating,
+        comment
+      })
+    });
+
+    if (res.ok) {
+      sucEl.innerText = '✅ Review submitted successfully! Thank you for your feedback.';
+      sucEl.style.display = 'block';
+      document.getElementById('reviewComment').value = '';
+      setRating(0);
+      selectedRating = 0;
+      // Reload reviews
+      loadReviews(providerId);
+    } else {
+      const msg = await res.text();
+      errEl.innerText = msg;
+      errEl.style.display = 'block';
+    }
+  } catch (err) {
+    errEl.innerText = 'Failed to submit review. Make sure server is running.';
+    errEl.style.display = 'block';
+  }
+}
+
+loadProviderProfile();
+</script>
+</body>
+</html>

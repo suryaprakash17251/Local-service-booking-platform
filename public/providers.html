@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Provider Dashboard – LocalService</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-logo">Local<span class="logo-dot">Service</span></div>
+  <div class="nav-links">
+    <span class="active">Dashboard</span>
+    <span>Earnings</span>
+    <span onclick="window.location='profile.html'">Profile</span>
+  </div>
+  <div class="nav-actions">
+    <div id="providerName" style="font-size:13px;font-weight:700;color:#2D3748;"></div>
+    <span style="background:#C6F6D5;color:#276749;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;">● Available</span>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <h1>Provider Dashboard</h1>
+  <p>Manage your bookings, earnings and availability</p>
+</div>
+
+<div class="section" style="padding-top:32px;">
+
+  <!-- STATS ROW -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:40px;">
+    <div style="background:white;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #EDF2F7;">
+      <div style="font-size:12px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Today's Bookings</div>
+      <div style="font-size:28px;font-weight:800;color:#1A202C;" id="statToday">0</div>
+      <div style="font-size:12px;color:#48BB78;margin-top:4px;">Confirmed bookings</div>
+    </div>
+    <div style="background:white;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #EDF2F7;">
+      <div style="font-size:12px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Pending Requests</div>
+      <div style="font-size:28px;font-weight:800;color:#1A202C;" id="statPending">0</div>
+      <div style="font-size:12px;color:#F6AD55;margin-top:4px;">Action Needed</div>
+    </div>
+    <div style="background:white;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #EDF2F7;">
+      <div style="font-size:12px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Earnings (Month)</div>
+      <div style="font-size:28px;font-weight:800;color:#1A202C;" id="statEarnings">₹0</div>
+      <div style="font-size:12px;color:#48BB78;margin-top:4px;">From confirmed bookings</div>
+    </div>
+    <div style="background:white;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #EDF2F7;">
+      <div style="font-size:12px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Overall Rating</div>
+      <div style="font-size:28px;font-weight:800;color:#1A202C;">4.92</div>
+      <div style="font-size:12px;color:#D69E2E;margin-top:4px;">★★★★★ Top Rated</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+    <!-- TODAY'S SCHEDULE -->
+    <div style="background:white;border-radius:14px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #EDF2F7;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="font-size:16px;font-weight:800;">Today's Schedule</h3>
+        <span style="color:#E53E3E;font-size:13px;font-weight:700;">Confirmed Bookings</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;" id="scheduleList">
+        <div style="text-align:center;padding:24px;color:#718096;">Loading...</div>
+      </div>
+    </div>
+
+    <!-- NEW REQUESTS -->
+    <div style="background:white;border-radius:14px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border:1px solid #EDF2F7;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <h3 style="font-size:16px;font-weight:800;">New Requests</h3>
+        <span id="pendingBadge" style="background:#FFF5F5;color:#E53E3E;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;">0 Pending</span>
+      </div>
+      <div id="requestsList">
+        <div style="text-align:center;padding:24px;color:#718096;">Loading...</div>
+      </div>
+
+      <!-- UPGRADE BANNER -->
+      <div style="margin-top:16px;background:linear-gradient(135deg,#1A202C,#2D3748);color:white;border-radius:12px;padding:16px;">
+        <div style="font-size:13px;font-weight:800;margin-bottom:4px;">🚀 Boost Visibility</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-bottom:10px;">Reach 3x more customers in your area and unlock advanced analytics tools.</div>
+        <button style="background:#E53E3E;color:white;border:none;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Learn More</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="site-footer">© 2024 <strong>LocalService</strong>. All rights reserved.</footer>
+
+<script>
+const role = localStorage.getItem('role');
+if (role !== 'Provider') window.location.href = 'auth.html';
+
+const user = JSON.parse(localStorage.getItem('user') || 'null');
+if (user) document.getElementById('providerName').innerText = user.name || 'Provider';
+
+function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+
+async function loadProviderDashboard() {
+  if (!user) return;
+
+  try {
+    const res = await fetch(`http://localhost:5000/bookings/provider/${encodeURIComponent(user.name)}`);
+    const bookings = await res.json();
+
+    const pending = bookings.filter(b => b.status === 'Pending');
+    const confirmed = bookings.filter(b => b.status === 'Confirmed');
+
+    // Update stats
+    document.getElementById('statToday').innerText = confirmed.length;
+    document.getElementById('statPending').innerText = pending.length;
+    document.getElementById('pendingBadge').innerText = `${pending.length} Pending`;
+
+    // Calculate earnings
+    const earnings = confirmed.reduce((sum, b) => sum + (parseFloat(b.price) || 0), 0);
+    document.getElementById('statEarnings').innerText = `₹${earnings.toLocaleString('en-IN')}`;
+
+    // Render confirmed bookings (schedule)
+    const schedule = document.getElementById('scheduleList');
+    if (confirmed.length === 0) {
+      schedule.innerHTML = `<div style="text-align:center;padding:32px;color:#718096;"><div style="font-size:36px;margin-bottom:8px;">📅</div><p>No confirmed bookings yet</p></div>`;
+    } else {
+      schedule.innerHTML = confirmed.map(b => `
+        <div style="display:flex;align-items:center;gap:14px;padding:14px;background:#F7FAFC;border-radius:10px;">
+          <div style="font-size:13px;font-weight:700;color:#718096;white-space:nowrap;">${new Date(b.bookedAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:14px;">${b.customerName}</div>
+            <div style="font-size:12px;color:#718096;">${b.serviceName} • ${b.location||'N/A'}</div>
+          </div>
+          <span style="background:#C6F6D5;color:#276749;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;">Confirmed</span>
+        </div>`).join('');
+    }
+
+    // Render pending requests
+    const requests = document.getElementById('requestsList');
+    if (pending.length === 0) {
+      requests.innerHTML = `<div style="text-align:center;padding:32px;color:#718096;"><div style="font-size:36px;margin-bottom:8px;">🎉</div><p>No new requests right now</p></div>`;
+    } else {
+      requests.innerHTML = pending.map(b => `
+        <div style="padding:16px;border:1px solid #EDF2F7;border-radius:10px;margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+            <div>
+              <div style="font-weight:700;font-size:15px;">${b.customerName}</div>
+              <div style="font-size:12px;color:#718096;">📅 ${new Date(b.bookedAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</div>
+            </div>
+            <span style="background:#FFF5F5;color:#E53E3E;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;">NEW</span>
+          </div>
+          <div style="font-size:14px;font-weight:700;color:#1A202C;margin-bottom:4px;">${b.serviceName}</div>
+          <div style="font-size:12px;color:#718096;margin-bottom:14px;">📍 ${b.location||'N/A'} &nbsp;·&nbsp; 💰 ₹${b.price}</div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="updateBooking('${b._id}','Confirmed')" style="flex:1;background:#E53E3E;color:white;border:none;border-radius:8px;padding:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">Accept</button>
+            <button onclick="updateBooking('${b._id}','Cancelled')" style="flex:1;background:#EDF2F7;color:#718096;border:none;border-radius:8px;padding:10px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">Reject</button>
+          </div>
+        </div>`).join('');
+    }
+
+  } catch (err) {
+    console.error('Error loading dashboard:', err);
+  }
+}
+
+async function updateBooking(id, status) {
+  await fetch(`http://localhost:5000/bookings/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status })
+  });
+  loadProviderDashboard();
+}
+
+loadProviderDashboard();
+</script>
+</body>
+</html>

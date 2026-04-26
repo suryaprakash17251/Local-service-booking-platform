@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocalService – Book Trusted Local Services</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-logo">Local<span class="logo-dot">Service</span></div>
+  <div class="nav-links">
+    <a href="#how">How It Works</a>
+    <a href="#testimonials">Testimonials</a>
+  </div>
+  <div class="nav-actions">
+    <a href="auth.html" class="btn btn-outline btn-sm" onclick="localStorage.setItem('authMode','login')">Login</a>
+    <a href="auth.html" class="btn btn-primary btn-sm" onclick="localStorage.setItem('authMode','signup')">Sign Up</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-content">
+      <div class="hero-badge">⭐ Trusted by over 10k homeowners</div>
+      <h1>Book Trusted Local<br><span>Services Easily</span></h1>
+      <p>Connect with top-rated electricians, plumbers, and home maintenance experts in your neighborhood instantly. Guaranteed quality and upfront pricing.</p>
+      <div class="hero-actions">
+        <a href="#role" class="btn btn-primary">Book a Service Now</a>
+        <a href="#how" class="btn btn-secondary">View Pricing</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <div class="stat-num">+4.9</div>
+          <div class="stat-label">Rating</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">500+</div>
+          <div class="stat-label">Experts Nearby</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">10k+</div>
+          <div class="stat-label">Happy Customers</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROLE SELECTION -->
+<section id="role" class="section" style="padding-top: 64px;">
+  <div class="section-header">
+    <div>
+      <h2>Get Started Today</h2>
+      <p>Choose your role to access the platform</p>
+    </div>
+  </div>
+  <div class="role-cards" style="justify-content: flex-start;">
+    <div class="role-card" onclick="selectRole('Customer')" style="background: white; border: 2px solid #EDF2F7; color: #1A202C;">
+      <div class="role-icon-wrap">👥</div>
+      <h3 style="color:#1A202C;">Customer</h3>
+      <p style="color:#718096;">Find and book trusted local service providers</p>
+    </div>
+    <div class="role-card" onclick="selectRole('Provider')" style="background: white; border: 2px solid #EDF2F7; color: #1A202C;">
+      <div class="role-icon-wrap">🔧</div>
+      <h3 style="color:#1A202C;">Service Provider</h3>
+      <p style="color:#718096;">Manage bookings and grow your business</p>
+    </div>
+    <div class="role-card" onclick="selectRole('Admin')" style="background: white; border: 2px solid #EDF2F7; color: #1A202C;">
+      <div class="role-icon-wrap">🛡️</div>
+      <h3 style="color:#1A202C;">Admin</h3>
+      <p style="color:#718096;">Oversee platform operations and manage users</p>
+    </div>
+  </div>
+</section>
+
+<!-- POPULAR SERVICES -->
+<div style="background: white; border-top: 1px solid #EDF2F7; border-bottom: 1px solid #EDF2F7;">
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <h2>Popular Services</h2>
+        <p>Whatever you need, we have a specialist ready to help you today</p>
+      </div>
+      <a class="section-link">Explore All Services →</a>
+    </div>
+    <div class="categories-grid">
+      <div class="cat-card">
+        <div class="cat-icon">⚡</div>
+        <div class="cat-label">Electrician</div>
+      </div>
+      <div class="cat-card">
+        <div class="cat-icon">🔧</div>
+        <div class="cat-label">Plumber</div>
+      </div>
+      <div class="cat-card">
+        <div class="cat-icon">🧹</div>
+        <div class="cat-label">Cleaner</div>
+      </div>
+      <div class="cat-card">
+        <div class="cat-icon">❄️</div>
+        <div class="cat-label">HVAC Specialist</div>
+      </div>
+      <div class="cat-card">
+        <div class="cat-icon">🎨</div>
+        <div class="cat-label">Painting</div>
+      </div>
+      <div class="cat-card">
+        <div class="cat-icon">🔨</div>
+        <div class="cat-label">Carpentry</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div id="how">
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <h2>How It Works</h2>
+        <p>Getting your task done is as simple as 1, 2, 3</p>
+      </div>
+    </div>
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="how-num">1</div>
+        <h3>Select a Service</h3>
+        <p>Choose from dozens of categories and specify what needs to be done.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">2</div>
+        <h3>Choose a Pro</h3>
+        <p>Review ratings, prices, and availability of trusted local professionals.</p>
+      </div>
+      <div class="how-card">
+        <div class="how-num">3</div>
+        <h3>Relax & Done</h3>
+        <p>Your pro arrives, completes the job, and you pay securely through the app.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TESTIMONIALS -->
+<div id="testimonials" style="background: white; border-top: 1px solid #EDF2F7;">
+  <div class="section">
+    <div class="section-header">
+      <div>
+        <h2>What Our Customers Say</h2>
+        <p>Trusted by thousands of homeowners across the city</p>
+      </div>
+    </div>
+    <div class="testimonials-grid">
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"The easiest way I've ever booked a plumber. Chris arrived right on time and fixed the leak in 20 minutes."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">N</div>
+          <div class="testi-info">
+            <strong>Naveen</strong>
+            <small>Homeowner</small>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"I needed a deep clean for my new apartment. The team was thorough and professional. Highly recommended!"</p>
+        <div class="testi-author">
+          <div class="testi-avatar">C</div>
+          <div class="testi-info">
+            <strong>Chris</strong>
+            <small>Business Owner</small>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"LocalService helped me find an electrician on a Sunday when no one else was available. Absolute life saver."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">S</div>
+          <div class="testi-info">
+            <strong>Sai Harish</strong>
+            <small>Property Manager</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  © 2024 <strong>LocalService</strong>. All rights reserved.
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

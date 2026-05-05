@@ -390,6 +390,13 @@ async function openBookingPanel(id) {
         </div>
       </div>
 
+      <!-- Mobile Number -->
+      <div style="margin-bottom:20px;">
+        <label style="font-size:13px;font-weight:700;color:#2D3748;display:block;margin-bottom:8px;">📱 Mobile Number</label>
+        <input type="tel" id="bookingMobile" placeholder="Enter your mobile number"
+          style="width:100%;padding:11px 14px;border:1.5px solid #EDF2F7;border-radius:8px;font-size:14px;font-family:inherit;color:#1A202C;background:#F7FAFC;outline:none;">
+      </div>
+
       <!-- Date Picker -->
       <div style="margin-bottom:20px;">
         <label style="font-size:13px;font-weight:700;color:#2D3748;display:block;margin-bottom:8px;">📅 Select Date</label>
@@ -452,11 +459,16 @@ async function confirmBooking(id) {
   if (!s) return;
 
   const user = JSON.parse(localStorage.getItem('user') || 'null');
+  const mobile = document.getElementById('bookingMobile') ? document.getElementById('bookingMobile').value : '';
   const date = document.getElementById('bookingDate') ? document.getElementById('bookingDate').value : '';
   const slot = document.getElementById('selectedSlot') ? document.getElementById('selectedSlot').value : '';
   const errEl = document.getElementById('bookingError');
 
-  // Validate date and time
+  // Validate mobile, date and time
+  if (!mobile) {
+    if (errEl) { errEl.innerText = 'Please enter your mobile number ❗'; errEl.style.display = 'block'; }
+    return;
+  }
   if (!date) {
     if (errEl) { errEl.innerText = 'Please select a date ❗'; errEl.style.display = 'block'; }
     return;
@@ -479,6 +491,7 @@ async function confirmBooking(id) {
         rating: s.rating || 4.8,
         customerName: user ? user.name : 'Guest',
         customerEmail: user ? user.email : 'guest',
+        customerMobile: mobile,
         serviceId: s._id || s.id,
         bookingDate: date,
         timeSlot: slot

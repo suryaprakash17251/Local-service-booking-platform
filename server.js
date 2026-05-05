@@ -1,11 +1,18 @@
 const dns = require('dns');
 dns.setServers(['8.8.8.8', '8.8.4.4']);
+require("dotenv").config();
 
 const express = require("express");
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
+const twilio = require("twilio");
+
+// Twilio Setup (Checks .env variables first)
+const smsClient = (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN)
+  ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+  : null;
 
 const User = require("./models/User");
 const Service = require("./models/Service");
@@ -24,17 +31,28 @@ app.use(express.static("public"));
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "potentialfat@gmail.com",
-    pass: "qgyr nhzv cavt hhxn"
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS
   }
 });
 
 //////////////////////////////////////////////////
 // 🔗 MongoDB
 //////////////////////////////////////////////////
-mongoose.connect("mongodb+srv://projectuser:project123@cluster0.l5bbwpp.mongodb.net/servicehub?appName=Cluster0")
-  .then(() => console.log("MongoDB Connected ✅"))
-  .catch(err => console.log("MongoDB Error:", err.message));
+const connectWithRetry = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 5000,  // timeout after 5s
+    });
+    console.log("MongoDB Connected ✅");
+  } catch (err) {
+    console.log("MongoDB Error:", err.message);
+    console.log("Retrying in 5 seconds...");
+    setTimeout(connectWithRetry, 5000);  // retry every 5 seconds
+  }
+};
+
+connectWithRetry();
 
 //////////////////////////////////////////////////
 // 📝 SIGNUP
@@ -238,7 +256,7 @@ app.patch("/services/:id/activate", async (req, res) => {
 // Customer creates a booking (with double booking prevention)
 app.post("/bookings", async (req, res) => {
   try {
-    let { providerName, category, serviceName, price, location, rating, customerName, customerEmail, serviceId, bookingDate, timeSlot } = req.body;
+    let { providerName, category, serviceName, price, location, rating, customerName, customerEmail, customerMobile, serviceId, bookingDate, timeSlot } = req.body;
 
     // Enforce compulsory review check for past discounted bookings
     const unreviewedDiscounted = await Booking.findOne({
@@ -279,7 +297,7 @@ app.post("/bookings", async (req, res) => {
 
     const booking = await Booking.create({
       providerName, category, serviceName, price,
-      location, rating, customerName, customerEmail,
+      location, rating, customerName, customerEmail, customerMobile,
       serviceId, bookingDate, timeSlot,
       status: "Pending",
       bookedAt: new Date(),
@@ -299,6 +317,7 @@ app.post("/bookings", async (req, res) => {
               <p style="font-size: 16px;">Hi <strong>${customerName}</strong>,</p>
               <p style="font-size: 15px; color: #4A5568;">Your booking request for <strong>${serviceName}</strong> has been successfully sent to <strong>${providerName}</strong>.</p>
               <div style="background-color: #F7FAFC; padding: 18px; border-radius: 10px; margin: 24px 0; border: 1px solid #EDF2F7;">
+                <p style="margin: 8px 0;">📱 <strong>Customer Mobile:</strong> ${customerMobile || 'Not provided'}</p>
                 <p style="margin: 8px 0;">📅 <strong>Date:</strong> ${new Date(bookingDate).toDateString()}</p>
                 <p style="margin: 8px 0;">🕐 <strong>Time:</strong> ${timeSlot}</p>
                 <p style="margin: 8px 0;">📍 <strong>Location:</strong> ${location}</p>
@@ -313,7 +332,23 @@ app.post("/bookings", async (req, res) => {
         });
         console.log("Confirmation email sent to:", customerEmail);
       } catch (mailErr) {
-        console.error("Failed to send email:", mailErr.message);
+        console.error(`[${new Date().toISOString()}] Email failed for ${customerEmail}:`, mailErr.message);
+        // Booking is still saved — inform user email didn't go through
+        emailFailed = true;
+      }
+    }
+
+    // 📱 Send SMS notification
+    if (smsClient && customerMobile && customerMobile !== "guest") {
+      try {
+        await smsClient.messages.create({
+          body: `🎉 Booking Confirmed!\n\nHi ${customerName},\nService: ${serviceName}\nProvider: ${providerName}\n\n📅 ${new Date(bookingDate).toDateString()}\n⏰ ${timeSlot}\n📍 ${location}\n💰 ₹${price}\n\nStatus: Pending`,
+          from: process.env.TWILIO_PHONE_NUMBER,
+          to: `+91${customerMobile}`
+        });
+        console.log("SMS sent to:", customerMobile);
+      } catch (smsErr) {
+        console.error("SMS failed:", smsErr.message);
       }
     }
 
@@ -325,6 +360,7 @@ app.post("/bookings", async (req, res) => {
 });
 
 // Get booked time slots for a provider on a specific date
+
 app.get("/bookings/slots/:serviceId/:date", async (req, res) => {
   try {
     const { serviceId, date } = req.params;

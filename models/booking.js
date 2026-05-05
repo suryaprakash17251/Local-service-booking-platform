@@ -9,6 +9,7 @@ const BookingSchema = new mongoose.Schema({
   rating: Number,
   customerName: String,
   customerEmail: String,
+  customerMobile: String,
   serviceId: String,
   bookingDate: String,
   timeSlot: String,
@@ -16,5 +17,10 @@ const BookingSchema = new mongoose.Schema({
   bookedAt: { type: Date, default: Date.now },
   isDiscounted: { type: Boolean, default: false }
 });
+
+BookingSchema.index(
+  { serviceId: 1, bookingDate: 1, timeSlot: 1 },
+  { unique: true }
+);
 
 module.exports = mongoose.model("Booking", BookingSchema);

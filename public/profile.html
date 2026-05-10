@@ -164,7 +164,9 @@ async function loadProfile() {
 
   try {
     // Try to fetch latest from server
-    const res = await fetch(`http://localhost:5000/user/${currentUser.email}`);
+    const res = await fetch(`http://localhost:5000/user/${currentUser.email}`, {
+      headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+    });
     if (res.ok) {
       const data = await res.json();
       currentUser = { ...currentUser, ...data };
@@ -253,7 +255,7 @@ async function saveProfile() {
   try {
     const res = await fetch('http://localhost:5000/user/update', {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${localStorage.getItem("token")}` },
       body: JSON.stringify({ email: currentUser.email, name, phone, address })
     });
 

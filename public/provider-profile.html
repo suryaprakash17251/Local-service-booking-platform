@@ -285,7 +285,7 @@ async function submitReview(providerId) {
   try {
     const res = await fetch('http://localhost:5000/reviews', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${localStorage.getItem("token")}` },
       body: JSON.stringify({
         providerId,
         providerName: currentProvider ? currentProvider.providerName : '',

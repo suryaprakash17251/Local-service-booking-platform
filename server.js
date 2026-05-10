@@ -12,6 +12,7 @@ const bcrypt = require("bcryptjs");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
 const twilio = require("twilio");
+const jwt = require("jsonwebtoken");
 
 // Twilio Setup (Checks .env variables first)
 const smsClient = (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN)
@@ -90,8 +91,16 @@ app.post("/login", async (req, res) => {
     if (user.role !== role) return res.status(400).send(`This account is registered as ${user.role}, not ${role}`);
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(400).send("Wrong password");
+    
+    const token = jwt.sign(
+      { id: user._id, email: user.email, role: user.role },
+      process.env.JWT_SECRET || "fallback_secret",
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+    );
+    
     res.json({
       message: "Login success",
+      token,
       name: user.name,
       email: user.email,
       phone: user.phone,
@@ -108,8 +117,23 @@ app.post("/login", async (req, res) => {
 // 👤 USER PROFILE
 //////////////////////////////////////////////////
 
+const verifyToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).send("Unauthorized: Missing or invalid token");
+  }
+  const token = authHeader.split(" ")[1];
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "fallback_secret");
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(403).send("Forbidden: Invalid token");
+  }
+};
+
 // Get user profile
-app.get("/user/:email", async (req, res) => {
+app.get("/user/:email", verifyToken, async (req, res) => {
   try {
     const user = await User.findOne({ email: req.params.email });
     if (!user) return res.status(404).send("User not found");
@@ -126,7 +150,7 @@ app.get("/user/:email", async (req, res) => {
 });
 
 // Update user profile
-app.patch("/user/update", async (req, res) => {
+app.patch("/user/update", verifyToken, async (req, res) => {
   try {
     const { email, name, phone, address } = req.body;
     if (!name || !phone) return res.status(400).send("Name and phone are required");
@@ -195,7 +219,7 @@ app.get("/services", async (req, res) => {
   }
 });
 
-app.post("/services", async (req, res) => {
+app.post("/services", verifyToken, async (req, res) => {
   try {
     const { category, serviceName, providerName, price, location, contact, description, services, rating, status, image } = req.body;
     if (!category || !serviceName || !providerName || !price) {
@@ -212,7 +236,7 @@ app.post("/services", async (req, res) => {
   }
 });
 
-app.delete("/services/:id", async (req, res) => {
+app.delete("/services/:id", verifyToken, async (req, res) => {
   try {
     const service = await Service.findById(req.params.id);
     if (!service) return res.status(404).send("Service not found");
@@ -224,7 +248,7 @@ app.delete("/services/:id", async (req, res) => {
 });
 
 // Deactivate a provider (hide from customers)
-app.patch("/services/:id/deactivate", async (req, res) => {
+app.patch("/services/:id/deactivate", verifyToken, async (req, res) => {
   try {
     const service = await Service.findByIdAndUpdate(
       req.params.id,
@@ -239,7 +263,7 @@ app.patch("/services/:id/deactivate", async (req, res) => {
 });
 
 // Reactivate a provider
-app.patch("/services/:id/activate", async (req, res) => {
+app.patch("/services/:id/activate", verifyToken, async (req, res) => {
   try {
     const service = await Service.findByIdAndUpdate(
       req.params.id,
@@ -258,7 +282,7 @@ app.patch("/services/:id/activate", async (req, res) => {
 //////////////////////////////////////////////////
 
 // Customer creates a booking (with double booking prevention)
-app.post("/bookings", async (req, res) => {
+app.post("/bookings", verifyToken, async (req, res) => {
   try {
     let { providerName, category, serviceName, price, location, rating, customerName, customerEmail, customerMobile, serviceId, bookingDate, timeSlot } = req.body;
 
@@ -381,7 +405,7 @@ app.get("/bookings/slots/:serviceId/:date", async (req, res) => {
 });
 
 // Get bookings for a specific customer
-app.get("/bookings/customer/:email", async (req, res) => {
+app.get("/bookings/customer/:email", verifyToken, async (req, res) => {
   try {
     const bookings = await Booking.find({ customerEmail: req.params.email });
     res.json(bookings);
@@ -391,7 +415,7 @@ app.get("/bookings/customer/:email", async (req, res) => {
 });
 
 // Get bookings for a specific provider
-app.get("/bookings/provider/:name", async (req, res) => {
+app.get("/bookings/provider/:name", verifyToken, async (req, res) => {
   try {
     const bookings = await Booking.find({ providerName: req.params.name });
     res.json(bookings);
@@ -401,7 +425,7 @@ app.get("/bookings/provider/:name", async (req, res) => {
 });
 
 // Update booking status (Accept / Reject / Cancel)
-app.patch("/bookings/:id", async (req, res) => {
+app.patch("/bookings/:id", verifyToken, async (req, res) => {
   try {
     const booking = await Booking.findByIdAndUpdate(
       req.params.id,
@@ -419,7 +443,7 @@ app.patch("/bookings/:id", async (req, res) => {
 //////////////////////////////////////////////////
 
 // Add a review
-app.post("/reviews", async (req, res) => {
+app.post("/reviews", verifyToken, async (req, res) => {
   try {
     const { providerId, providerName, customerName, customerEmail, rating, comment } = req.body;
     if (!providerId || !rating || !comment) {

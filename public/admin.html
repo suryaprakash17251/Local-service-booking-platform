@@ -263,7 +263,10 @@ async function loadFullAdminList() {
 
 async function deactivateProvider(id) {
   if (!confirm('Deactivate this provider? They will be hidden from customers.')) return;
-  const res = await fetch(`http://localhost:5000/services/${id}/deactivate`, { method: 'PATCH' });
+  const res = await fetch(`http://localhost:5000/services/${id}/deactivate`, { 
+    method: 'PATCH',
+    headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+  });
   if (res.ok) {
     alert('Provider deactivated ✅ Hidden from customers.');
     loadFullAdminList();
@@ -271,7 +274,10 @@ async function deactivateProvider(id) {
 }
 
 async function activateProvider(id) {
-  const res = await fetch(`http://localhost:5000/services/${id}/activate`, { method: 'PATCH' });
+  const res = await fetch(`http://localhost:5000/services/${id}/activate`, { 
+    method: 'PATCH',
+    headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+  });
   if (res.ok) {
     alert('Provider activated ✅ Now visible to customers.');
     loadFullAdminList();
@@ -280,7 +286,10 @@ async function activateProvider(id) {
 
 async function removeProvider(id) {
   if (!confirm('Permanently remove this provider? This cannot be undone.')) return;
-  const res = await fetch(`http://localhost:5000/services/${id}`, { method: 'DELETE' });
+  const res = await fetch(`http://localhost:5000/services/${id}`, { 
+    method: 'DELETE',
+    headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+  });
   if (res.ok) {
     alert('Provider removed ✅');
     loadFullAdminList();

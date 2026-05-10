@@ -104,7 +104,9 @@ async function loadProviderDashboard() {
   if (!user) return;
 
   try {
-    const res = await fetch(`http://localhost:5000/bookings/provider/${encodeURIComponent(user.name)}`);
+    const res = await fetch(`http://localhost:5000/bookings/provider/${encodeURIComponent(user.name)}`, {
+      headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+    });
     const bookings = await res.json();
 
     const pending = bookings.filter(b => b.status === 'Pending');
@@ -166,7 +168,7 @@ async function loadProviderDashboard() {
 async function updateBooking(id, status) {
   await fetch(`http://localhost:5000/bookings/${id}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token")}` },
     body: JSON.stringify({ status })
   });
   loadProviderDashboard();

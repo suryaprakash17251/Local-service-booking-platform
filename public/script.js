@@ -46,6 +46,7 @@ async function login() {
 
   if (res.ok) {
     const data = await res.json();
+    localStorage.setItem("token", data.token);
     // Save full user data from server
     localStorage.setItem("user", JSON.stringify({
       name: data.name,
@@ -100,7 +101,7 @@ async function addServiceProvider({ category, serviceName, providerName, price, 
 
   const res = await fetch("http://localhost:5000/services", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token")}` },
     body: JSON.stringify({ category, serviceName, providerName, price, location, contact, description, services, rating, status, image })
   });
 
@@ -121,7 +122,8 @@ async function addServiceProvider({ category, serviceName, providerName, price, 
 // ─── REMOVE SERVICE PROVIDER (deletes from MongoDB) ───
 async function removeServiceProvider(id) {
   const res = await fetch(`http://localhost:5000/services/${id}`, {
-    method: "DELETE"
+    method: "DELETE",
+    headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
   });
   if (res.ok) {
     alert('Provider removed ✅');
@@ -481,7 +483,7 @@ async function confirmBooking(id) {
   try {
     const res = await fetch("http://localhost:5000/bookings", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token")}` },
       body: JSON.stringify({
         providerName: s.providerName,
         category: s.category,

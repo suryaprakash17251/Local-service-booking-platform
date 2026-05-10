@@ -70,7 +70,9 @@ async function loadBookings() {
   if (!user) return;
 
   try {
-    const res = await fetch(`http://localhost:5000/bookings/customer/${encodeURIComponent(user.email)}`);
+    const res = await fetch(`http://localhost:5000/bookings/customer/${encodeURIComponent(user.email)}`, {
+      headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+    });
     const bookings = await res.json();
 
     // Update stats
@@ -153,7 +155,7 @@ async function cancelBooking(id) {
   if (!confirm('Are you sure you want to cancel this booking?')) return;
   await fetch(`http://localhost:5000/bookings/${id}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token")}` },
     body: JSON.stringify({ status: 'Cancelled' })
   });
   loadBookings();
@@ -207,7 +209,7 @@ async function submitReview() {
   try {
     const res = await fetch("http://localhost:5000/reviews", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("token")}` },
       body: JSON.stringify({
         providerId: currentReviewProviderId,
         providerName: currentReviewProviderName,

@@ -1,84 +1,142 @@
-# ServiceHub
+# 🛠️ ServiceHub — Local Service Booking Platform
 
-A simple and intuitive service booking application built with Node.js, Express, MongoDB, and Vanilla HTML/CSS/JS.
+A full-stack web application that connects customers with local service providers. Users can browse services, book appointments, and receive notifications via email and SMS.
 
-## Features
+---
 
-*   **Role-Based Authentication:** Users can sign up and log in as either a `Customer` or a `Provider`.
-*   **Service Management:** Providers can list their services. Admin can manage services (activate/deactivate). Providers are auto-deactivated if they have no bookings for 90 days.
-*   **Smart Booking System:**
-    *   Prevents double bookings for the same provider, date, and time slot.
-    *   Applies an automatic 50% discount for the first 3 bookings of a provider.
-*   **Notifications:**
-    *   **Email Confirmations:** Customers receive email confirmations via Nodemailer (Gmail integration) upon successful booking.
-    *   **SMS Notifications:** Customers receive SMS notifications via Twilio.
-*   **Reviews & Ratings:** Customers can leave reviews and ratings for providers after a booking. Compulsory review check for discounted bookings before booking again.
-*   **Dashboards:** Dedicated dashboards for Customers, Providers, and Admins to manage profiles, bookings, and services.
+## 🚀 Features
 
-## Tech Stack
+- **Role-based access** — Separate flows for Customers, Service Providers, and Admins.
+- **Service browsing & booking** — Customers can discover and book local services.
+- **Smart Booking System** — Prevents double bookings and applies an automatic 50% discount for the first 3 bookings of a provider.
+- **Service Management** — Providers can list their services. Providers are auto-deactivated if they have no bookings for 90 days.
+- **Email notifications** — Booking confirmations sent via Nodemailer (Gmail).
+- **SMS notifications** — Real-time alerts powered by Twilio.
+- **Secure authentication** — JWT Authentication and Passwords hashed with bcryptjs.
+- **Reviews & Ratings** — Customers can leave reviews and ratings for providers. Compulsory review check for discounted bookings before booking again.
+- **MongoDB database** — Persistent data storage with Mongoose.
+- **Docker support** — Containerized for easy deployment.
 
-*   **Backend:** Node.js, Express.js
-*   **Database:** MongoDB (with Mongoose)
-*   **Frontend:** Vanilla HTML, CSS, JavaScript
-*   **Authentication:** bcryptjs for password hashing
-*   **Notifications:** Nodemailer (Email), Twilio (SMS)
-*   **Other:** CORS, dotenv
+---
 
-## Prerequisites
+## 🧰 Tech Stack
 
-*   Node.js installed
-*   MongoDB instance (Local or MongoDB Atlas)
-*   Twilio Account (Optional, for SMS notifications)
-*   Gmail App Password (Optional, for email notifications)
+| Layer      | Technology                        |
+|------------|-----------------------------------|
+| Runtime    | Node.js                           |
+| Framework  | Express.js v5                     |
+| Database   | MongoDB + Mongoose                |
+| Email      | Nodemailer (Gmail)                |
+| SMS        | Twilio                            |
+| Auth       | JWT (JSON Web Tokens), bcryptjs   |
+| Frontend   | Vanilla HTML, CSS, JavaScript     |
+| DevOps     | Docker                            |
 
-## Setup and Installation
+---
 
-1.  **Clone the repository or navigate to the project directory:**
-    ```bash
-    cd redesign
-    ```
+## 📁 Project Structure
 
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
+```
+Local-service-booking-platform/
+├── models/              # Mongoose data models
+├── public/              # Frontend HTML, CSS, JS files
+├── server.js            # Main Express server & API routes
+├── test-twilio.js       # Twilio SMS integration test
+├── .env.example         # Environment variable template
+├── Dockerfile           # Docker configuration
+├── package.json         # Project dependencies
+└── README.md
+```
 
-3.  **Configure Environment Variables:**
-    *   Copy the `.env.example` file to `.env`:
-        ```bash
-        cp .env.example .env
-        ```
-    *   Fill in the required variables in your `.env` file:
-        ```env
-        MONGO_URI=your_mongodb_connection_string
-        GMAIL_USER=your_gmail_address
-        GMAIL_PASS=your_gmail_app_password
-        TWILIO_ACCOUNT_SID=your_twilio_sid
-        TWILIO_AUTH_TOKEN=your_twilio_auth_token
-        TWILIO_PHONE_NUMBER=your_twilio_phone_number
-        ```
+---
 
-4.  **Run the Server:**
-    ```bash
-    npm start
-    ```
-    The server will start on `http://localhost:5000`.
+## ⚙️ Getting Started
 
-## Project Structure
+### Prerequisites
 
-*   `server.js`: The main entry point for the Express application, containing all API routes and backend logic.
-*   `models/`: Contains Mongoose models for User, Service, Booking, and Review.
-*   `public/`: Contains all static frontend assets (HTML, CSS, JS).
-*   `Dockerfile` / `.dockerignore`: Configuration files for containerizing the application.
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- [MongoDB](https://www.mongodb.com/) (local instance or MongoDB Atlas)
+- A [Twilio](https://www.twilio.com/) account (for SMS)
+- A Gmail account with an [App Password](https://support.google.com/accounts/answer/185833) enabled
 
-## API Endpoints Overview
+### 1. Clone the Repository
 
-*   **Auth:** `/signup`, `/login`, `/forgot`
-*   **Users:** `/user/:email`, `/user/update`
-*   **Services:** `/services` (GET, POST), `/services/:id` (DELETE), `/services/:id/deactivate`, `/services/:id/activate`
-*   **Bookings:** `/bookings` (POST), `/bookings/slots/:serviceId/:date`, `/bookings/customer/:email`, `/bookings/provider/:name`, `/bookings/:id` (PATCH)
-*   **Reviews:** `/reviews` (POST, GET)
+```bash
+git clone https://github.com/suryaprakash17251/Local-service-booking-platform.git
+cd Local-service-booking-platform
+```
 
-## License
+### 2. Install Dependencies
 
-ISC License
+```bash
+npm install
+```
+
+### 3. Configure Environment Variables
+
+Copy the example file and fill in your credentials:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env`:
+
+```env
+MONGO_URI=your_mongodb_uri_here
+GMAIL_USER=your_gmail_address_here
+GMAIL_PASS=your_gmail_app_password_here
+TWILIO_ACCOUNT_SID=your_twilio_account_sid_here
+TWILIO_AUTH_TOKEN=your_twilio_auth_token_here
+TWILIO_PHONE_NUMBER=your_twilio_phone_number_here
+
+# JWT
+JWT_SECRET=your_super_secret_jwt_key_here
+JWT_EXPIRES_IN=7d
+```
+
+### 4. Run the Application
+
+```bash
+npm start
+```
+
+The server will start on `http://localhost:5000` (or the configured port).
+
+---
+
+## 🐳 Running with Docker
+
+```bash
+# Build the image
+docker build -t servicehub .
+
+# Run the container
+docker run -p 5000:5000 --env-file .env servicehub
+```
+
+---
+
+## 📋 API Overview
+
+The server exposes REST API endpoints for:
+
+- **Auth** — User registration and login (`/signup`, `/login`)
+- **Users** — View and update user profiles (`/user/:email`, `/user/update`)
+- **Services** — List and manage available services (`/services`)
+- **Bookings** — Create and view bookings (`/bookings`)
+- **Reviews** — Submit and read reviews (`/reviews`)
+
+*(Refer to `server.js` for the full route definitions.)*
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+## 👤 Author
+
+**suryaprakash17251** — [GitHub Profile](https://github.com/suryaprakash17251)
